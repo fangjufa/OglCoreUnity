@@ -1,0 +1,9 @@
+
+*.db
+*.opendb
+*.exp
+*.ilk
+*.lib
+*.pdb
+*.meta
+Unity/LogFile.txt
