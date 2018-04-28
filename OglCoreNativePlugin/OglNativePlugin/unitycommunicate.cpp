@@ -320,6 +320,11 @@ extern "C" _declspec(dllexport) void SetTexture(void* textureAddr)
 	textureId = (GLuint)textureAddr;
 }
 
+extern "C" _declspec(dllexport) void DrawEveryFrame()
+{
+	Draw();
+}
+
 //Unity 的GL.IssuePluginEvent函数中调用的接口。这里的函数签名必须要带上UnityReneringEvent。
 extern "C" UnityRenderingEvent UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API GetRenderEventFunc()
 {

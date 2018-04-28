@@ -113,7 +113,9 @@ public:
 		if (_hRC != NULL && _hDC != NULL)
 		{
 			BOOL re = wglMakeCurrent(_hDC, _hRC);
-			dxlib::Debug::Log("GLContext.makeCurrent():设置绘图上下文，结果 = %d\r\n", re);
+			GLenum err = glGetError();
+			if(err != GL_NO_ERROR)
+				dxlib::Debug::Log("GLContext.makeCurrent() error:%d.\r\n", err);
 		}
 	}
 
