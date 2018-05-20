@@ -66,6 +66,9 @@
     <ClInclude Include="GLContext.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="TextureQuad.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GLEW\glew.c">
@@ -75,9 +78,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Debug.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Helper.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

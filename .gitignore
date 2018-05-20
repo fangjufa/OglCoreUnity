@@ -7,3 +7,4 @@
 *.pdb
 *.meta
 Unity/LogFile.txt
+OglCoreNativePlugin/OglNativePlugin/DXWindow.hpp

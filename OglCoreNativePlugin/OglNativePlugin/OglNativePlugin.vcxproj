@@ -159,6 +159,7 @@
     <ClInclude Include="OglWindow.hpp" />
     <ClInclude Include="PlatformBase.h" />
     <ClInclude Include="ShaderResource.hpp" />
+    <ClInclude Include="TextureQuad.hpp" />
     <ClInclude Include="Unity\IUnityGraphics.h" />
     <ClInclude Include="Unity\IUnityGraphicsD3D11.h" />
     <ClInclude Include="Unity\IUnityGraphicsD3D12.h" />
@@ -169,7 +170,6 @@
   <ItemGroup>
     <ClCompile Include="Debug.cpp" />
     <ClCompile Include="GLEW\glew.c" />
-    <ClCompile Include="Helper.cpp" />
     <ClCompile Include="unitycommunicate.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

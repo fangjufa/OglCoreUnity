@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <gl/GL.h>
+//#include <gl/GL.h>
 #include <windows.h>
 
 #include "Debug.h"
@@ -35,7 +35,7 @@ public:
 
 	~GLContext()
 	{
-	
+
 	}
 
 
@@ -86,10 +86,13 @@ public:
 			0,//dwDamageMask;
 
 		};
-	
+
 		if (_format == 0)
 		{
+			Debug::GetInst()->Log("_format 为0，执行ChoosePixelFormat");
 			PixelFormat = ChoosePixelFormat(_hDC, &pfd);
+			if (PixelFormat == 0)
+				Debug::GetInst()->Log("PixelFormat 为0，ChoosePixelFormat没有返回合适的format值。");
 		}
 		else
 		{
@@ -97,13 +100,19 @@ public:
 		}
 		if (!SetPixelFormat(_hDC, PixelFormat, &pfd))
 		{
+			Debug::GetInst()->Log("执行SetPixelFormat失败。");
 			return false;
 		}
 		_hRC = wglCreateContext(_hDC);
+
 		if (!wglMakeCurrent(_hDC, _hRC))
 		{
+			Debug::GetInst()->Log("执行wglMakeCurrent失败。");
 			return false;
 		}
+		GLenum glEnum = glGetError();
+		if (glEnum != GL_NO_ERROR)
+			Debug::GetInst()->Log("First Draw error:%d.\r\n", glEnum);
 		return true;
 
 	}
@@ -113,9 +122,12 @@ public:
 		if (_hRC != NULL && _hDC != NULL)
 		{
 			BOOL re = wglMakeCurrent(_hDC, _hRC);
-			GLenum err = glGetError();
-			if(err != GL_NO_ERROR)
-				dxlib::Debug::Log("GLContext.makeCurrent() error:%d.\r\n", err);
+			if (re == FALSE)
+				dxlib::Debug::Log("GLContext.makeCurrent():设置绘图上下文，结果 = %d\r\n", re);
+
+			/*glEnum = glGetError();
+			if (glEnum != GL_NO_ERROR)
+			Debug::GetInst()->Log("wglMakeCurrent error:%d.\r\n", glEnum);*/
 		}
 	}
 
@@ -154,13 +166,14 @@ public:
 	{
 		if (_hRC != NULL)
 		{
-			//wglMakeCurrent(NULL, NULL);//在这个程序里并不需要这个
+			//wglMakeCurrent(_hDC, NULL);//在这个程序里并不需要这个
 			wglDeleteContext(_hRC);
 			_hRC = NULL;
 		}
 		if (_hDC != NULL)
 		{
-			ReleaseDC(_hWnd, _hDC);
+			DeleteDC(_hDC);
+			//ReleaseDC(_hWnd, _hDC);
 			_hDC = NULL;
 		}
 
@@ -173,4 +186,3 @@ public:
 	}
 
 };
-
