@@ -151,6 +151,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Debug.h" />
+    <ClInclude Include="DXWindow.hpp" />
     <ClInclude Include="GLContext.h" />
     <ClInclude Include="GLEW\glew.h" />
     <ClInclude Include="GLEW\glxew.h" />

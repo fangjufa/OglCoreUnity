@@ -3,8 +3,11 @@
 #include<Windows.h>
 #include<iostream>
 #include<vector>
+#include"Debug.h"
 
+using namespace dxlib;
 using namespace std;
+
 
 struct ALLMONITORINFO
 {
@@ -13,17 +16,17 @@ struct ALLMONITORINFO
 	bool     isPrimary;
 };
 
-class oglWindow
+class DXWindow
 {
 public:
-	oglWindow()
+	DXWindow()
 	{
 		_hWnd = NULL;
 		szTitle = L"显示窗口";
 		szWindowClass = L"oglWindow";
 	}
 
-	~oglWindow()
+	~DXWindow()
 	{
 		//Close();
 	}
@@ -31,9 +34,8 @@ public:
 	HINSTANCE _hInst;					// 当前实例
 	TCHAR* szTitle;					// 标题栏文本
 	TCHAR* szWindowClass;			// 主窗口类名
-									//生成的窗口句柄
-	BOOL isFullScreen;
-
+	BOOL   isFullScreen;
+							//生成的窗口句柄
 	HWND _hWnd;
 	int width;
 	int height;
@@ -42,12 +44,14 @@ public:
 
 	///-------------------------------------------------------------------------------------------------
 	/// <summary> 创建一个窗口. </summary>
+	///
+	/// <remarks> Xian.dai, 2017/3/23. </remarks>
+	///
 	/// <returns>
 	/// true if it succeeds, false if it fails.
 	/// </returns>
 	///-------------------------------------------------------------------------------------------------
-	//BOOL Create(int w,int h,WNDPROC proc= NULL)
-	BOOL Create(WNDPROC proc = NULL)
+	BOOL Create(WNDPROC proc,HWND parentWindow)
 	{
 		if (_hWnd != NULL)//如果已经创建了一个窗口那么不再重复创建
 		{
@@ -63,9 +67,9 @@ public:
 		memset(&wcex, 0, sizeof(wcex));
 
 		wcex.cbSize = sizeof(WNDCLASSEX);
-		wcex.style = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS | CS_OWNDC;
+		wcex.style = CS_HREDRAW | CS_VREDRAW| CS_OWNDC | CS_DBLCLKS;
 
-											 //设置其回调函数
+		//设置其回调函数
 		if (proc != NULL)
 			wcex.lpfnWndProc = proc;
 		else
@@ -80,10 +84,13 @@ public:
 		wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 		//wcex.lpszMenuName	= MAKEINTRESOURCE(IDC_WIN01);//不要菜单栏
 		wcex.lpszClassName = szWindowClass;//主窗口类名
+										   //wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 
+										   //注册窗口类,这个是必须的，要不然下面的CreateWindow函数总返回NULL
+		//ATOM atom = RegisterClassEx(&wcex);
 		RegisterClassEx(&wcex);
 
-		//int startx = 0, starty = 0;
+		//所有的显示器信息。
 		vector<ALLMONITORINFO> mInfo;
 		//获取显示器信息。
 		mInfo.clear();
@@ -91,6 +98,11 @@ public:
 		mInfo.reserve(GetSystemMetrics(SM_CMONITORS));
 
 		EnumDisplayMonitors(NULL, NULL, this->MonitorEnumProc, reinterpret_cast<LPARAM>(&mInfo));
+
+		//cout << "the number of monitors:" << mInfo.size() << endl;
+		Debug::GetInst()->Log("the number of monitors:%d.\r\n", mInfo.size());
+		
+
 
 		if (mInfo.size() == 1)
 		{
@@ -104,10 +116,11 @@ public:
 		{
 			for (int i = 0; i < mInfo.size(); i++)
 			{
+				Debug::GetInst()->Log("mInfo[%d].isPrimary:%d.\r\n",i, mInfo[i].isPrimary);
 				//获取特定显示器的信息，最重要的是分辨率，起始坐标等。
 				if (!mInfo[i].isPrimary)
 				{
-					RECT rect = mInfo[0].rect;
+					RECT rect = mInfo[i].rect;
 					width = rect.right - rect.left;
 					height = rect.bottom - rect.top;
 					startx = rect.left;
@@ -117,16 +130,19 @@ public:
 			}
 		}
 
+		//width = 1280;
+		//height = 720;
 		//获取以像素为单位的屏幕尺寸。
 		//打印得出确实得到了长宽。
 		//cout << "width:" << width << "  height:" << height << endl;
+		Debug::GetInst()->Log("width:%d,height:%d.startx:%d,starty:%d.\r\n",width,height,startx,starty);
 		//创建窗口时，如果想全屏显示，不能将宽和高设定为width和height,可以设置成比它小的任意数。
 		_hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
 			startx, starty, width/2, height/2, NULL, NULL, _hInst, NULL);
 
 		if (!_hWnd)
 		{
-			//Debug::GetInst()->Log("创建窗口失败：%d", GetLastError());
+			Debug::GetInst()->Log("创建窗口失败：%d.\r\n",GetLastError());
 			return FALSE;
 		}
 		ToggleFullScreen();
@@ -135,6 +151,10 @@ public:
 		//ShowWindow(_hWnd, SW_MAXIMIZE);
 		UpdateWindow(_hWnd);
 
+		//SetWindowPos(_hWnd, HWND_TOPMOST, startx, starty, width, height, SWP_NOMOVE | SWP_NOSIZE); //SWP_NOMOVE 保留当前位置(忽略 x 和 y 参数）。
+		//LONG oldlStyle = GetWindowLong(_hWnd, GWL_STYLE);
+		//SetWindowPos(_hWnd, HWND_TOPMOST, startx, starty, width, height, oldlStyle);
+
 		return TRUE;
 	}
 
@@ -142,15 +162,16 @@ public:
 	{
 		if (_hWnd)
 		{
-			//CloseWindow(_hWnd);
+			CloseWindow(_hWnd);
 			//CloseWindow destroy window
 			BOOL result = DestroyWindow(_hWnd);
-			DWORD error = GetLastError();
-			//Debug::GetInst()->Log("Error:%d.", error);
+			//DWORD error = GetLastError();
+			Debug::GetInst()->Log("Error:%d.\r\n", result);
 		}
 		_hWnd = NULL;
 
 	}
+
 	void ToggleFullScreen()
 	{
 		ToggleFullScreen(width, height, startx, starty);
@@ -178,7 +199,7 @@ public:
 		}
 		else
 		{
-			//Debug::GetInst()->Log("设置成全屏。\r\n");
+			Debug::GetInst()->Log("设置成全屏。\r\n");
 			LONG curWinStyle = GetWindowLong(_hWnd, GWL_STYLE);
 			curWinStyle = curWinStyle & ~WS_OVERLAPPEDWINDOW;
 			SetWindowLong(_hWnd, GWL_STYLE, curWinStyle | WS_POPUP);
@@ -186,6 +207,18 @@ public:
 		}
 		//isFullScreen = !isFullScreen;
 	}
+
+	//RECT GetMonitorRECT(HMONITOR hMonitor)
+	//{
+	//	for (int i = 0; i < mInfo.size(); i++)
+	//	{
+	//		if (mInfo[i].hMonitor == hMonitor)
+	//		{
+	//			return mInfo[i].rect;
+	//		}
+	//	}
+	//	return RECT();
+	//}
 private:
 
 	///-------------------------------------------------------------------------------------------------
@@ -194,6 +227,8 @@ private:
 	///-------------------------------------------------------------------------------------------------
 	static	LRESULT CALLBACK  MyWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
+		//int wmId, wmEvent;
+		//dxlib::Debug::Log("WndProc():进入消息处理函数 message = %d \r\n", message);
 		switch (message)
 		{
 		case WM_COMMAND:
